@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Keep the Doodle Alive</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --cream:#fdf6e3; --warm:#f5e6c8; --brown:#8B5E3C; --dark:#3d2b1f;
+  --accent:#ff6b35; --green:#4caf50; --yellow:#ffd54f; --red:#ef5350;
+  --blue:#42a5f5; --purple:#ab47bc; --teal:#26a69a; --orange:#ff7043;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:var(--cream);
+  font-family:'Nunito',sans-serif;
+  height:100vh; overflow:hidden;
+  background-image:
+    radial-gradient(circle at 15% 15%,rgba(255,180,100,0.13) 0%,transparent 50%),
+    radial-gradient(circle at 85% 85%,rgba(100,180,255,0.10) 0%,transparent 50%);
+}
+
+/* ── SCREENS ── */
+.screen { position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:100; }
+.screen.hidden { display:none !important; }
+
+/* ── START ── */
+#start-screen { background:linear-gradient(160deg,#fff8e7 0%,#ffe0b2 50%,#ffccbc 100%); }
+#start-screen h1 {
+  font-family:'Fredoka One',cursive; font-size:clamp(34px,7vw,70px);
+  color:var(--dark); text-align:center; line-height:1.1;
+  text-shadow:3px 3px 0 rgba(139,94,60,0.2); margin-bottom:4px;
+}
+.tagline { font-size:clamp(13px,2.5vw,18px); color:var(--brown); font-weight:700; text-align:center; margin-bottom:24px; }
+.doodle-hero { font-size:clamp(70px,14vw,120px); margin-bottom:16px; animation:dogBounce 1.2s ease-in-out infinite; filter:drop-shadow(0 8px 16px rgba(0,0,0,0.15)); }
+@keyframes dogBounce { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-14px) rotate(3deg)} }
+.start-btn {
+  font-family:'Fredoka One',cursive; font-size:22px;
+  background:linear-gradient(135deg,#ff6b35,#ff9800); color:#fff;
+  border:none; border-radius:50px; padding:14px 44px; cursor:pointer;
+  box-shadow:0 6px 0 #c0440a,0 8px 20px rgba(255,107,53,0.4);
+  transition:all 0.12s; letter-spacing:1px;
+}
+.start-btn:hover { transform:translateY(-3px); box-shadow:0 9px 0 #c0440a,0 12px 24px rgba(255,107,53,0.45); }
+.start-btn:active { transform:translateY(3px); box-shadow:0 3px 0 #c0440a; }
+.start-facts { margin-top:18px; font-size:12px; color:var(--brown); opacity:0.8; text-align:center; line-height:1.7; }
+
+/* ── GAME ── */
+#game-screen {
+  background:linear-gradient(180deg,#e8f5e9 0%,#fff8e7 40%,#fdf6e3 100%);
+  flex-direction:column; justify-content:flex-start;
+  padding:6px; gap:5px; overflow:hidden;
+}
+
+/* Top bar */
+#top-bar {
+  width:100%; display:flex; align-items:center; justify-content:space-between;
+  background:rgba(255,255,255,0.72); border-radius:14px; padding:5px 12px;
+  border:2px solid rgba(139,94,60,0.14); flex-shrink:0;
+}
+#level-info { font-family:'Fredoka One',cursive; font-size:14px; color:var(--dark); line-height:1.2; }
+#level-info small { font-family:'Nunito',sans-serif; font-size:10px; color:var(--brown); font-weight:700; display:block; }
+#day-timer-wrap { display:flex; flex-direction:column; align-items:center; gap:2px; }
+#day-label { font-size:10px; font-weight:800; color:var(--brown); letter-spacing:0.5px; }
+#day-timer-bar { width:110px; height:9px; background:rgba(0,0,0,0.1); border-radius:10px; overflow:hidden; }
+#day-timer-fill { height:100%; background:linear-gradient(90deg,#42a5f5,#26c6da); border-radius:10px; transition:width 0.9s linear; }
+#score-box { font-family:'Fredoka One',cursive; font-size:15px; color:var(--dark); text-align:right; }
+#score-box small { font-size:10px; font-family:'Nunito',sans-serif; font-weight:700; color:var(--brown); display:block; }
+
+/* Salem area */
+#salem-area {
+  display:flex; align-items:center; justify-content:center;
+  gap:10px; flex-shrink:0; padding:2px 0;
+}
+#salem-emoji {
+  font-size:clamp(52px,9vw,80px); line-height:1;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+  transition:filter 0.3s;
+}
+#salem-emoji.happy    { animation:salemHappy 0.5s; }
+#salem-emoji.sad      { animation:salemSad 0.6s; }
+#salem-emoji.zoomies  { animation:salemZoomies 0.3s infinite alternate; }
+#salem-emoji.sleeping { animation:salemSleep 2s infinite; }
+@keyframes salemHappy   { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-14deg) scale(1.13)} 75%{transform:rotate(14deg) scale(1.13)} }
+@keyframes salemSad     { 0%,100%{transform:translateY(0)} 50%{transform:translateY(5px) scale(0.95)} }
+@keyframes salemZoomies { from{transform:rotate(-10deg) translateX(-7px)} to{transform:rotate(10deg) translateX(7px)} }
+@keyframes salemSleep   { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+
+#mood-bubble {
+  background:#fff; border-radius:14px 14px 14px 4px;
+  padding:6px 11px; font-size:12px; font-weight:700; color:var(--dark);
+  box-shadow:0 3px 12px rgba(0,0,0,0.12); max-width:155px; line-height:1.35;
+  border:2px solid rgba(139,94,60,0.1);
+}
+
+/* Chaos bar */
+#chaos-bar-wrap {
+  width:100%; background:rgba(255,255,255,0.6); border-radius:11px;
+  padding:4px 10px; border:1.5px solid rgba(255,107,53,0.2);
+  display:flex; align-items:center; gap:7px; flex-shrink:0;
+}
+#chaos-label { font-size:10px; font-weight:800; color:var(--accent); white-space:nowrap; }
+#chaos-bar { flex:1; height:7px; background:rgba(0,0,0,0.08); border-radius:6px; overflow:hidden; }
+#chaos-fill { height:100%; background:linear-gradient(90deg,#ffd54f,#ff7043,#e53935); border-radius:6px; transition:width 0.4s; }
+#chaos-emoji { font-size:14px; }
+
+/* Meters grid */
+#meters-grid {
+  display:grid; grid-template-columns:1fr 1fr; gap:4px;
+  width:100%; flex-shrink:0;
+}
+.meter-row {
+  background:rgba(255,255,255,0.65); border-radius:10px;
+  padding:5px 9px; border:1.5px solid rgba(139,94,60,0.1);
+}
+.meter-label { display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; }
+.meter-name  { font-size:10.5px; font-weight:800; color:var(--dark); }
+.meter-val   { font-size:10px; font-weight:700; color:var(--brown); }
+.meter-bar   { height:8px; background:rgba(0,0,0,0.08); border-radius:5px; overflow:hidden; }
+.meter-fill  { height:100%; border-radius:5px; transition:width 0.5s ease; }
+.meter-row.critical .meter-fill { animation:meterPulse 0.55s ease-in-out infinite alternate; }
+@keyframes meterPulse { from{opacity:1} to{opacity:0.45} }
+
+/* Actions */
+#actions-area { width:100%; flex:1; overflow:hidden; min-height:0; }
+#actions-title { font-family:'Fredoka One',cursive; font-size:12px; color:var(--brown); margin-bottom:4px; letter-spacing:0.5px; }
+#actions-grid  { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; }
+.action-btn {
+  background:linear-gradient(135deg,#fff,#f9f0e0);
+  border:2px solid rgba(139,94,60,0.18); border-radius:11px;
+  padding:6px 3px; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; gap:1px;
+  transition:all 0.12s; position:relative; overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+.action-btn:hover  { transform:translateY(-2px); box-shadow:0 4px 10px rgba(0,0,0,0.12); border-color:rgba(139,94,60,0.38); }
+.action-btn:active { transform:translateY(1px); }
+.action-btn.cooling::after {
+  content:attr(data-cd); position:absolute; inset:0;
+  background:rgba(0,0,0,0.42); color:#fff;
+  font-size:16px; font-weight:800; font-family:'Fredoka One',cursive;
+  display:flex; align-items:center; justify-content:center; border-radius:9px;
+}
+.action-icon { font-size:20px; line-height:1; }
+.action-name { font-size:9px; font-weight:800; color:var(--dark); text-align:center; line-height:1.2; }
+.action-hint { font-size:7.5px; color:var(--brown); opacity:0.75; text-align:center; line-height:1.1; }
+
+/* Event banner */
+#event-banner {
+  position:fixed; top:72px; left:50%; transform:translateX(-50%);
+  background:linear-gradient(135deg,#fff3e0,#fff); border:3px solid var(--orange);
+  border-radius:18px; padding:9px 18px; font-size:13px; font-weight:800; color:var(--dark);
+  box-shadow:0 6px 24px rgba(255,112,67,0.35); z-index:500;
+  max-width:320px; text-align:center; display:none;
+}
+#event-banner.show { display:block; animation:bannerPop 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes bannerPop { from{transform:translateX(-50%) scale(0.7);opacity:0} to{transform:translateX(-50%) scale(1);opacity:1} }
+.event-emoji { font-size:22px; display:block; margin-bottom:2px; }
+
+/* Overlays */
+#day-clear,#game-over,#win-screen {
+  position:fixed; inset:0; z-index:600;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:rgba(61,43,31,0.88); backdrop-filter:blur(6px);
+}
+#day-clear.hidden,#game-over.hidden,#win-screen.hidden { display:none !important; }
+.overlay-card {
+  background:linear-gradient(160deg,#fff8e7,#ffe0b2); border-radius:26px;
+  padding:28px 36px; text-align:center; max-width:340px; width:90%;
+  box-shadow:0 20px 60px rgba(0,0,0,0.3); border:3px solid rgba(255,152,0,0.3);
+}
+.overlay-card h2  { font-family:'Fredoka One',cursive; font-size:34px; color:var(--dark); margin-bottom:5px; }
+.overlay-card p   { font-size:14px; color:var(--brown); font-weight:700; margin-bottom:14px; line-height:1.5; }
+.overlay-card .big{ font-size:60px; display:block; margin-bottom:8px; animation:dogBounce 1s infinite; }
+.overlay-btn {
+  font-family:'Fredoka One',cursive; font-size:19px;
+  background:linear-gradient(135deg,#ff6b35,#ff9800); color:#fff;
+  border:none; border-radius:38px; padding:12px 32px; cursor:pointer;
+  box-shadow:0 5px 0 #c0440a; transition:all 0.12s; margin:4px; display:inline-block;
+}
+.overlay-btn:hover { transform:translateY(-2px); }
+.overlay-btn:active { transform:translateY(3px); box-shadow:0 2px 0 #c0440a; }
+.overlay-btn.secondary { background:linear-gradient(135deg,#78909c,#546e7a); box-shadow:0 5px 0 #37474f; }
+.overlay-score { font-family:'Fredoka One'; font-size:20px; color:var(--accent); margin-bottom:12px; }
+
+/* Float text */
+.float-text {
+  position:fixed; font-family:'Fredoka One',cursive; font-size:17px;
+  pointer-events:none; z-index:400; animation:floatUp 1.1s ease-out forwards; white-space:nowrap;
+}
+@keyframes floatUp { 0%{opacity:1;transform:translateY(0) scale(1)} 100%{opacity:0;transform:translateY(-65px) scale(0.8)} }
+</style>
+</head>
+<body>
+
+<!-- START -->
+<div class="screen" id="start-screen">
+  <div class="doodle-hero">🐩</div>
+  <h1>Keep the<br>Doodle Alive</h1>
+  <div class="tagline">A chaotic Goldendoodle survival simulator 🐾</div>
+  <button class="start-btn" onclick="startGame()">Adopt Salem 🐾</button>
+  <div class="start-facts">
+    8 meters to balance · 15 random events · 10 life stages<br>
+    Based on the real struggles of doodle ownership 😅
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen hidden" id="game-screen">
+  <div id="top-bar">
+    <div id="level-info"><small>STAGE</small><span id="level-name">New Puppy</span></div>
+    <div id="day-timer-wrap">
+      <div id="day-label">DAY <span id="day-num">1</span></div>
+      <div id="day-timer-bar"><div id="day-timer-fill" style="width:100%"></div></div>
+    </div>
+    <div id="score-box"><small>SCORE</small><span id="score-val">0</span></div>
+  </div>
+
+  <div id="salem-area">
+    <div id="salem-emoji">🐩</div>
+    <div id="mood-bubble">Salem is ready for the day!</div>
+  </div>
+
+  <div id="chaos-bar-wrap">
+    <div id="chaos-label">🌀 CHAOS</div>
+    <div id="chaos-bar"><div id="chaos-fill" style="width:0%"></div></div>
+    <div id="chaos-emoji">😇</div>
+  </div>
+
+  <div id="meters-grid">
+    <div class="meter-row" id="m-hunger">
+      <div class="meter-label"><span class="meter-name">🍗 Hunger</span><span class="meter-val" id="v-hunger">75</span></div>
+      <div class="meter-bar"><div class="meter-fill" id="f-hunger" style="background:linear-gradient(90deg,#ff7043,#ffa726)"></div></div>
+    </div>
+    <div class="meter-row" id="m-energy">
+      <div class="meter-label"><span class="meter-name">⚡ Energy</span><span class="meter-val" id="v-energy">90</span></div>
+      <div class="meter-bar"><div class="meter-fill" id="f-energy" style="background:linear-gradient(90deg,#ffd54f,#ffeb3b)"></div></div>
+    </div>
+    <div class="meter-row" id="m-happiness">
+      <div class="meter-label"><span class="meter-name">💛 Happiness</span><span class="meter-val" id="v-happiness">75</span></div>
+      <div class="meter-bar"><div class="meter-fill" id="f-happiness" style="background:linear-gradient(90deg,#ec407a,#f48fb1)"></div></div>
+    </div>
+    <div class="meter-row" id="m-potty">
+      <div class="meter-label"><span class="meter-name">💩 Potty Urge</span><span class="meter-val" id="v-potty">15</span></div>
+      <div class="meter-bar"><div class="meter-fill" id="f-potty" style="background:linear-gradient(90deg,#8d6e63,#a1887f)"></div></div>
+    </div>
+    <div class="meter-row" id="m-social">
+      <div class="meter-label"><span class="meter-name">🐾 Social</span><span class="meter-val" id="v-social">60</span></div>
+      <div class="meter-bar"><div class="meter-fill" id="f-social" style="background:linear-gradient(90deg,#26a69a,#4db6ac)"></div></div>
+    </div>
+    <div class="meter-row" id="m-training">
+      <div class="meter-label"><span class="meter-name">🎓 Training</span><span class="meter-val" id="v-training">40</span></div>
+      <div class="meter-bar"><div class="meter-fill" id="f-training" style="background:linear-gradient(90deg,#5c6bc0,#7986cb)"></div></div>
+    </div>
+    <div class="meter-row" id="m-health">
+      <div class="meter-label"><span class="meter-name">❤️ Health</span><span class="meter-val" id="v-health">100</span></div>
+      <div class="meter-bar"><div class="meter-fill" id="f-health" style="background:linear-gradient(90deg,#ef5350,#e57373)"></div></div>
+    </div>
+    <div class="meter-row" id="m-mischief">
+      <div class="meter-label"><span class="meter-name">😈 Mischief</span><span class="meter-val" id="v-mischief">10</span></div>
+      <div class="meter-bar"><div class="meter-fill" id="f-mischief" style="background:linear-gradient(90deg,#ab47bc,#ce93d8)"></div></div>
+    </div>
+  </div>
+
+  <div id="actions-area">
+    <div id="actions-title">🎮 WHAT DO YOU DO?</div>
+    <div id="actions-grid"></div>
+  </div>
+</div>
+
+<!-- Event banner -->
+<div id="event-banner">
+  <span class="event-emoji" id="event-emoji">🐾</span>
+  <span id="event-text"></span>
+</div>
+
+<!-- Day Clear -->
+<div id="day-clear" class="hidden">
+  <div class="overlay-card">
+    <span class="big" id="dc-emoji">🎉</span>
+    <h2 id="dc-title">Day Complete!</h2>
+    <p id="dc-msg">Salem survived another day.</p>
+    <div class="overlay-score" id="dc-score"></div>
+    <button class="overlay-btn" onclick="nextDay()">Next Day 🌅</button>
+  </div>
+</div>
+
+<!-- Game Over -->
+<div id="game-over" class="hidden">
+  <div class="overlay-card">
+    <span class="big">😵</span>
+    <h2 style="color:#c62828">Oh No!</h2>
+    <p id="go-msg">Salem has had enough.</p>
+    <div class="overlay-score" id="go-score"></div>
+    <button class="overlay-btn" onclick="restartGame()">Try Again 🔄</button>
+    <button class="overlay-btn secondary" onclick="showStart()">Main Menu</button>
+  </div>
+</div>
+
+<!-- Win -->
+<div id="win-screen" class="hidden">
+  <div class="overlay-card">
+    <span class="big">🏆</span>
+    <h2>Perfect Doodle Life!</h2>
+    <p>You raised Salem through all 10 stages!<br>You are an absolute doodle legend. 🐾</p>
+    <div class="overlay-score" id="win-score"></div>
+    <button class="overlay-btn" onclick="restartGame()">Play Again 🐩</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════
+//  LEVELS
+// ═══════════════════════════════════
+const LEVELS=[
+  {name:"New Puppy",          emoji:"🐶",days:3,dm:1.0,mm:0.5, desc:"Simple feeding and potty timing."},
+  {name:"Teething Terror",    emoji:"🦷",days:3,dm:1.1,mm:1.4, desc:"Chew toys or say goodbye to furniture."},
+  {name:"Zoomie Phase",       emoji:"🌀",days:3,dm:1.2,mm:1.2, desc:"Naps and play sessions matter now."},
+  {name:"First Dog Park",     emoji:"🌳",days:3,dm:1.2,mm:1.1, desc:"Socialization unlocked — handle with care."},
+  {name:"Training Basics",    emoji:"🎓",days:3,dm:1.3,mm:1.3, desc:"Sit. Stay. Down. Please."},
+  {name:"Separation Anxiety", emoji:"😰",days:3,dm:1.35,mm:1.5,desc:"Crate and comfort — a delicate balance."},
+  {name:"Teenage Doodle",     emoji:"😤",days:3,dm:1.4,mm:1.8, desc:"Mischief spikes. Training required."},
+  {name:"Big Dog Energy",     emoji:"🐕",days:3,dm:1.5,mm:1.4, desc:"More food and longer walks needed."},
+  {name:"Well-Trained",       emoji:"🌟",days:3,dm:1.55,mm:1.0,desc:"Harder juggling — all meters matter."},
+  {name:"Perfect Doodle Life",emoji:"🏆",days:5,dm:1.7,mm:1.2, desc:"Keep ALL meters balanced for 5 full days."},
+];
+
+// ═══════════════════════════════════
+//  ACTIONS
+// ═══════════════════════════════════
+const ACTIONS=[
+  {id:'breakfast',name:'Feed Breakfast',icon:'🍗',hint:'+Hunger ↑Potty',cd:60,
+   fx(s){d(s,'hunger',+28);d(s,'potty',+22);d(s,'health',+3);sf('+Hungry filled 🍗');}},
+  {id:'water',name:'Refill Water',icon:'💧',hint:'+Health +Hunger',cd:30,
+   fx(s){d(s,'health',+6);d(s,'hunger',+5);sf('+Hydrated 💧');}},
+  {id:'walk',name:'Go for Walk',icon:'🦮',hint:'+Happy+Social -Energy',cd:90,
+   fx(s){d(s,'happiness',+20);d(s,'social',+12);d(s,'energy',-18);d(s,'potty',+15);d(s,'training',+5);d(s,'mischief',-8);sf('+Walk 🦮');}},
+  {id:'fetch',name:'Play Fetch',icon:'🎾',hint:'+Happy -Energy',cd:45,
+   fx(s){d(s,'happiness',+16);d(s,'energy',-14);d(s,'mischief',-5);sf('+Fetch! 🎾');}},
+  {id:'tug',name:'Tug-of-War',icon:'🪢',hint:'+Happy ↑Mischief',cd:30,
+   fx(s){d(s,'happiness',+14);d(s,'energy',-8);d(s,'mischief',+10);sf('+Tug! 🪢');}},
+  {id:'chew',name:'Give Chew Toy',icon:'🦴',hint:'+Happy -Mischief',cd:20,
+   fx(s){d(s,'happiness',+8);d(s,'mischief',-14);sf('+Chew 🦴');}},
+  {id:'crate',name:'Crate Nap',icon:'🏠',hint:'+Energy -Happy?',cd:120,
+   fx(s){d(s,'energy',+30);const p=s.crateUses>2?-14:-3;d(s,'happiness',p);s.crateUses++;sf('+Nap 😴');}},
+  {id:'potty',name:'Potty Break',icon:'💩',hint:'-Potty urgency',cd:10,
+   fx(s){d(s,'potty',-(s.potty>65?26:13));d(s,'happiness',+5);sf('Good potty! 💩');}},
+  {id:'dogpark',name:'Dog Park',icon:'🌳',hint:'+Social +Happy -Energy',cd:180,
+   fx(s){d(s,'social',+30);d(s,'happiness',+20);d(s,'energy',-28);if(Math.random()<0.35){d(s,'mischief',+15);showEvent('🌀','Overstimulation!','Too hyped at the park. Mischief spiked! 😬');}sf('+Dog Park 🌳');}},
+  {id:'commands',name:'Practice Commands',icon:'🎓',hint:'+Training -Energy',cd:60,
+   fx(s){d(s,'training',+18);d(s,'energy',-12);d(s,'mischief',-10);d(s,'happiness',-3);sf('+Training 🎓');}},
+  {id:'vet',name:'Go to Vet',icon:'🏥',hint:'+Health -50 pts',cd:300,
+   fx(s){d(s,'health',+30);s.score=Math.max(0,s.score-50);updScore();showEvent('💸','Vet Visit','Health restored! Wallet... less so. -50 pts 😅');}},
+  {id:'stop',name:'Stop Mischief',icon:'🚫',hint:'-Mischief -Happy',cd:15,
+   fx(s){d(s,'mischief',-20);d(s,'happiness',-5);sf('NO! 🚫');}},
+  {id:'dinner',name:'Feed Dinner',icon:'🥩',hint:'+Hunger ↑Potty',cd:60,
+   fx(s){d(s,'hunger',+25);d(s,'potty',+20);d(s,'health',+2);sf('+Dinner 🥩');}},
+  {id:'daycamp',name:'Day Camp',icon:'⛺',hint:'+Social+Happy -Energy +30pts',cd:300,
+   fx(s){d(s,'social',+35);d(s,'happiness',+25);d(s,'energy',-35);s.score+=30;updScore();sf('+Day Camp ⛺');}},
+  {id:'ignore',name:'Ignore Barking',icon:'🔇',hint:'+Training -Happy',cd:20,
+   fx(s){d(s,'training',+8);d(s,'happiness',-6);d(s,'mischief',-5);sf('Staying strong 🔇');}},
+];
+
+// ═══════════════════════════════════
+//  EVENTS
+// ═══════════════════════════════════
+const EVENTS=[
+  {e:'🧦',t:'Doodle found a sock.',fx(s){d(s,'mischief',+18);d(s,'happiness',+8);}},
+  {e:'🌿',t:'Doodle ate mystery grass.',fx(s){d(s,'health',-8);d(s,'potty',+20);}},
+  {e:'🌀',t:'ZOOMIES ACTIVATED. Nothing is safe.',fx(s){d(s,'happiness',+15);d(s,'energy',-20);d(s,'mischief',+12);setSalemAnim('zoomies');}},
+  {e:'💩',t:'Dog refused to go outside, then peed inside 2 minutes later.',fx(s){d(s,'potty',-15);d(s,'happiness',-10);s.score=Math.max(0,s.score-20);updScore();}},
+  {e:'👟',t:'Doodle brought you a shoe. Very proud of herself.',fx(s){d(s,'happiness',+10);d(s,'mischief',+10);}},
+  {e:'💸',t:'Surprise vet bill arrives in the mail.',fx(s){s.score=Math.max(0,s.score-80);d(s,'health',+5);updScore();}},
+  {e:'🐕',t:'Dog park best friend unlocked! BFFs for life.',fx(s){d(s,'social',+25);d(s,'happiness',+20);}},
+  {e:'🛋️',t:'Comforter stuffing incident. Everywhere.',fx(s){d(s,'mischief',+25);d(s,'health',-5);}},
+  {e:'🍕',t:'Salem stole food off the counter. Zero regrets.',fx(s){d(s,'hunger',+15);d(s,'health',-8);d(s,'mischief',+15);}},
+  {e:'🪞',t:'Salem discovered the mirror and is aggressively barking at herself.',fx(s){d(s,'happiness',+5);d(s,'mischief',+8);}},
+  {e:'📦',t:'Amazon package destroyed before you could open it.',fx(s){d(s,'mischief',+20);d(s,'happiness',+10);}},
+  {e:'🌧️',t:'Rain refusal. Salem will not go outside. This is fine.',fx(s){d(s,'potty',+25);d(s,'happiness',-10);}},
+  {e:'😴',t:'Salem fell asleep mid-zoomie. Instant crash.',fx(s){d(s,'energy',+18);d(s,'happiness',+8);setSalemAnim('sleeping');}},
+  {e:'🐿️',t:'SQUIRREL SPOTTED. Absolute pandemonium.',fx(s){d(s,'energy',-15);d(s,'mischief',+15);d(s,'happiness',+12);}},
+  {e:'🎵',t:'Salem howled along to a song. Pitch-perfect? No. Effort? Yes.',fx(s){d(s,'happiness',+15);d(s,'social',+5);}},
+  {e:'🧸',t:"Favorite toy has been disemboweled. RIP Mr. Squeaky.",fx(s){d(s,'happiness',+8);d(s,'mischief',+12);}},
+  {e:'🏃',t:'Salem did laps around the couch for 4 minutes straight.',fx(s){d(s,'energy',-22);d(s,'happiness',+18);d(s,'mischief',+8);}},
+  {e:'🌊',t:'Bath time attempted. Bathroom: flooded. Dog: unhappy.',fx(s){d(s,'happiness',-15);d(s,'health',+10);d(s,'mischief',+5);}},
+];
+
+// ═══════════════════════════════════
+//  STATE
+// ═══════════════════════════════════
+let S={}, cds={}, drainInt, dayInt, evtTmo, cdInt;
+const KEYS=['hunger','energy','happiness','potty','social','training','health','mischief'];
+
+function initState(){
+  S={hunger:75,energy:90,happiness:75,potty:15,social:60,training:40,health:100,mischief:10,
+     chaos:0,score:0,level:0,day:1,crateUses:0,alive:true};
+  cds={};ACTIONS.forEach(a=>cds[a.id]=0);
+}
+
+function clamp(v,lo=0,hi=100){return Math.min(hi,Math.max(lo,v));}
+function d(s,k,amt){s[k]=clamp(s[k]+amt);updMeters();checkDead();}
+function updScore(){document.getElementById('score-val').textContent=S.score;}
+
+// ═══════════════════════════════════
+//  METERS
+// ═══════════════════════════════════
+function updMeters(){
+  KEYS.forEach(k=>{
+    const v=Math.round(S[k]);
+    document.getElementById('v-'+k).textContent=v;
+    document.getElementById('f-'+k).style.width=v+'%';
+    const bad=(k==='potty'||k==='mischief')?v>75:v<25;
+    document.getElementById('m-'+k).classList.toggle('critical',bad);
+  });
+  const c=Math.round(S.chaos);
+  document.getElementById('chaos-fill').style.width=c+'%';
+  document.getElementById('chaos-emoji').textContent=c<25?'😇':c<50?'😅':c<75?'😬':'🤯';
+}
+
+// ═══════════════════════════════════
+//  DEATH CHECK
+// ═══════════════════════════════════
+function checkDead(){
+  if(!S.alive)return;
+  let r='';
+  if(S.health<=0)     r="Salem's health crashed. She needed more vet visits! 🏥";
+  else if(S.happiness<=0) r="Salem is absolutely miserable. She needs more love! 💔";
+  else if(S.hunger<=0)    r="Salem is starving! Feed her! 🍗";
+  else if(S.potty>=100)   r="Potty emergency turned into full disaster. 💩";
+  else if(S.mischief>=100)r="Salem destroyed everything. Starting with the comforter. 😈";
+  if(r)gameOver(r);
+}
+
+// ═══════════════════════════════════
+//  MOOD BUBBLE
+// ═══════════════════════════════════
+const MOODS=[
+  {c:s=>s.potty>80,  m:"I NEED to go outside RIGHT NOW 💩"},
+  {c:s=>s.hunger<20, m:"I'm literally STARVING. HELLO. 🍗"},
+  {c:s=>s.health<25, m:"I don't feel so good... 🤒"},
+  {c:s=>s.mischief>80,m:"I wonder what's in the trash... 😈"},
+  {c:s=>s.happiness<20,m:"This is the worst day of my life. 😭"},
+  {c:s=>s.energy<15, m:"Zzzz... *flops over* 😴"},
+  {c:s=>s.energy>85&&s.happiness>70,m:"ZOOMIES INCOMING. EVACUATE. 🌀"},
+  {c:s=>s.social<20, m:"I haven't seen another dog in FOREVER. 🥺"},
+  {c:s=>S.hunger>80&&S.happiness>60,m:"10/10 would eat again immediately. 😋"},
+  {c:s=>s.training>75,m:"Sit. Stay. Look how good I am. 🎓"},
+  {c:()=>true, m:["Just vibing. 🐾","Did you say W-A-L-K?","Is that a squirrel?!","*stares at wall*","I brought you a sock.","I'm a very good girl.","BALL. BALL. BALL.","*yawn* what's for dinner?"][Math.floor(Math.random()*8)]},
+];
+let lastMoodT=0;
+function updMood(){
+  if(Date.now()-lastMoodT<4500)return;
+  lastMoodT=Date.now();
+  const mood=MOODS.find(m=>m.c(S));
+  const msg=typeof mood.m==='function'?mood.m():mood.m;
+  document.getElementById('mood-bubble').textContent=msg;
+  // Salem face
+  const se=document.getElementById('salem-emoji');
+  if(S.energy<15) se.textContent='😴';
+  else if(S.mischief>75) se.textContent='😈';
+  else if(S.happiness<20) se.textContent='😢';
+  else if(S.potty>85) se.textContent='😬';
+  else se.textContent='🐩';
+}
+function setSalemAnim(cls){
+  const el=document.getElementById('salem-emoji');
+  el.className=''; void el.offsetWidth; el.classList.add(cls);
+  setTimeout(()=>el.classList.remove(cls),2800);
+}
+
+// ═══════════════════════════════════
+//  EVENT BANNER
+// ═══════════════════════════════════
+function showEvent(emoji,title,msg){
+  const b=document.getElementById('event-banner');
+  document.getElementById('event-emoji').textContent=emoji;
+  document.getElementById('event-text').textContent=msg;
+  b.classList.add('show');
+  clearTimeout(b._t);b._t=setTimeout(()=>b.classList.remove('show'),4000);
+}
+
+// ═══════════════════════════════════
+//  FLOAT TEXT
+// ═══════════════════════════════════
+function sf(txt,col='#ff6b35'){
+  const el=document.createElement('div');
+  el.className='float-text';el.textContent=txt;el.style.color=col;
+  el.style.left=(25+Math.random()*50)+'%';el.style.top='38%';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),1200);
+}
+
+// ═══════════════════════════════════
+//  DRAIN LOOP
+// ═══════════════════════════════════
+function startDrain(){
+  clearInterval(drainInt);
+  drainInt=setInterval(()=>{
+    if(!S.alive)return;
+    const lv=LEVELS[S.level];
+    S.hunger   =clamp(S.hunger   -1.4*lv.dm);
+    S.energy   =clamp(S.energy   -1.0*lv.dm);
+    S.happiness=clamp(S.happiness-0.9*lv.dm);
+    S.potty    =clamp(S.potty    +1.6*lv.dm);
+    S.social   =clamp(S.social   -0.6*lv.dm);
+    S.training =clamp(S.training -0.3*lv.dm);
+    if(S.happiness<40||S.energy>70) S.mischief=clamp(S.mischief+0.8*lv.mm);
+    const bad=(S.hunger<30?1:0)+(S.potty>70?1:0)+(S.happiness<30?1:0)+(S.mischief>60?1:0);
+    S.chaos=clamp(S.chaos+bad*1.5-0.5);
+    S.score+=Math.round(2+(S.training/25));
+    updScore();updMeters();checkDead();updMood();
+  },3000);
+}
+
+// ═══════════════════════════════════
+//  DAY TIMER
+// ═══════════════════════════════════
+const DAY_SEC=120;
+function startDayTimer(){
+  clearInterval(dayInt);
+  let elapsed=0;
+  dayInt=setInterval(()=>{
+    if(!S.alive)return;
+    elapsed++;
+    document.getElementById('day-timer-fill').style.width=Math.max(0,100-(elapsed/DAY_SEC*100))+'%';
+    if(elapsed>=DAY_SEC){clearInterval(dayInt);dayClear();}
+  },1000);
+}
+
+// ═══════════════════════════════════
+//  RANDOM EVENTS
+// ═══════════════════════════════════
+function startEvents(){
+  clearTimeout(evtTmo);
+  function sched(){
+    evtTmo=setTimeout(()=>{
+      if(!S.alive)return;
+      const ev=EVENTS[Math.floor(Math.random()*EVENTS.length)];
+      showEvent(ev.e,'Random Event!',ev.t);ev.fx(S);
+      sched();
+    },(18+Math.random()*22)*1000);
+  }
+  sched();
+}
+
+// ═══════════════════════════════════
+//  COOLDOWN TICKER
+// ═══════════════════════════════════
+function startCdTicker(){
+  clearInterval(cdInt);
+  cdInt=setInterval(()=>{
+    ACTIONS.forEach(a=>{
+      if(cds[a.id]>0){
+        cds[a.id]--;
+        const btn=document.getElementById('ab-'+a.id);
+        if(btn){
+          if(cds[a.id]>0){btn.classList.add('cooling');btn.setAttribute('data-cd',cds[a.id]+'s');}
+          else{btn.classList.remove('cooling');btn.removeAttribute('data-cd');}
+        }
+      }
+    });
+  },1000);
+}
+
+// ═══════════════════════════════════
+//  BUILD BUTTONS
+// ═══════════════════════════════════
+function buildActions(){
+  const grid=document.getElementById('actions-grid');
+  grid.innerHTML='';
+  ACTIONS.forEach(a=>{
+    const btn=document.createElement('button');
+    btn.className='action-btn';btn.id='ab-'+a.id;
+    btn.innerHTML=`<div class="action-icon">${a.icon}</div><div class="action-name">${a.name}</div><div class="action-hint">${a.hint}</div>`;
+    btn.onclick=()=>{
+      if(cds[a.id]>0||!S.alive)return;
+      a.fx(S);cds[a.id]=a.cd;
+      btn.classList.add('cooling');btn.setAttribute('data-cd',a.cd+'s');
+      S.score+=5;updScore();
+    };
+    grid.appendChild(btn);
+  });
+}
+
+// ═══════════════════════════════════
+//  DAY CLEAR
+// ═══════════════════════════════════
+function dayClear(){
+  if(!S.alive)return;
+  clearInterval(drainInt);clearTimeout(evtTmo);
+  const bonus=50+Math.round((S.happiness+S.health)/2);
+  S.score+=bonus;updScore();
+  const pct=(S.health+S.happiness)/2;
+  let e='🎉',t='Day Complete!',m='Salem survived. Barely counts!';
+  if(pct>75){e='🌟';t='Amazing Day!';m='Salem is absolutely thriving. Good human! 🐾';}
+  else if(pct>45){e='😅';t='Survived!';m='Rough around the edges but she made it through.';}
+  document.getElementById('dc-emoji').textContent=e;
+  document.getElementById('dc-title').textContent=t;
+  document.getElementById('dc-msg').textContent=m;
+  document.getElementById('dc-score').textContent=`+${bonus} bonus pts · Total: ${S.score}`;
+  document.getElementById('day-clear').classList.remove('hidden');
+}
+
+function nextDay(){
+  document.getElementById('day-clear').classList.add('hidden');
+  S.day++;
+  const lv=LEVELS[S.level];
+  if(S.day>lv.days){
+    S.level++;
+    if(S.level>=LEVELS.length){triggerWin();return;}
+    S.day=1;S.crateUses=0;
+    S.energy=clamp(S.energy+20);S.chaos=clamp(S.chaos-20);
+    const nlv=LEVELS[S.level];
+    showEvent('🎊','New Stage Unlocked!',`${nlv.emoji} ${nlv.name} — ${nlv.desc}`);
+    document.getElementById('level-name').textContent=nlv.name;
+  }
+  document.getElementById('day-num').textContent=S.day;
+  S.energy=clamp(S.energy+25);S.potty=clamp(S.potty-20);S.mischief=clamp(S.mischief-10);
+  updMeters();startDayTimer();startDrain();startEvents();startCdTicker();
+}
+
+// ═══════════════════════════════════
+//  GAME OVER / WIN
+// ═══════════════════════════════════
+function gameOver(reason){
+  S.alive=false;
+  clearInterval(drainInt);clearInterval(dayInt);clearTimeout(evtTmo);clearInterval(cdInt);
+  document.getElementById('go-msg').textContent=reason;
+  document.getElementById('go-score').textContent='Final Score: '+S.score+' pts';
+  document.getElementById('game-over').classList.remove('hidden');
+}
+function triggerWin(){
+  S.alive=false;
+  clearInterval(drainInt);clearInterval(dayInt);clearInterval(cdInt);
+  document.getElementById('win-score').textContent='Final Score: '+S.score+' pts';
+  document.getElementById('win-screen').classList.remove('hidden');
+}
+
+// ═══════════════════════════════════
+//  START / RESTART
+// ═══════════════════════════════════
+function startGame(){
+  initState();buildActions();
+  ['start-screen','game-over','win-screen','day-clear'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('game-screen').classList.remove('hidden');
+  document.getElementById('day-num').textContent='1';
+  document.getElementById('level-name').textContent=LEVELS[0].name;
+  updMeters();updScore();
+  setTimeout(()=>showEvent('🐩','Salem has arrived!','Day 1 begins. She\'s already eyeing your socks.'),700);
+  startDayTimer();startDrain();startEvents();startCdTicker();
+}
+function restartGame(){document.getElementById('game-over').classList.add('hidden');document.getElementById('win-screen').classList.add('hidden');startGame();}
+function showStart(){
+  clearInterval(drainInt);clearInterval(dayInt);clearTimeout(evtTmo);clearInterval(cdInt);
+  document.getElementById('game-over').classList.add('hidden');
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('start-screen').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
